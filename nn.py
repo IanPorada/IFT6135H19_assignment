@@ -2,13 +2,24 @@ import numpy as np
 
 class NN(object):
   
-  def __init__(self, hidden_dims=(50,50), n_hidden=2, mode='train', datapath='data/mnist.pkl.npy', model_path=None):
+  def __init__(self, hidden_dims=(600,200), n_hidden=2, mode='train',
+               datapath='data/mnist.pkl.npy', model_path=None,
+               weight_init='glorot', activation_type='sigmoid'):
     self.mode = mode
+    self.weight_init = weight_init
+
+    # Set an activation function.
+    if activation_type == 'relu':
+        self.activation = self.relu
+        self.inverse_activation = self.relu_derivative
+    else:
+        self.activation = self.sigmoid
+        self.inverse_activation = self.sigmoid_derivative
     
     # Load and split the mnist data
     data = np.load(datapath)
-    self.X_train = data[0][0][0:10000]
-    self.y_train = data[0][1][0:10000]
+    self.X_train = data[0][0]
+    self.y_train = data[0][1]
     self.X_valid = data[1][0]
     self.y_valid = data[1][1]
     self.X_test = data[2][0]
@@ -45,12 +56,19 @@ class NN(object):
       self.cache['a_' + str(i + 1)] = a
     self.loss = self.ce_loss(a, label)
     
-  def activation(self, z):
+  def sigmoid(self, z):
     return 1 / (1 + np.exp(-z))
   
-  def inverse_activation(self, a):
+  def sigmoid_derivative(self, a):
     s = 1 / (1 + np.exp(-a))
     return s * (1 - s)
+
+  def relu(self, z):
+    return np.maximum(0, z)
+  
+  def relu_derivative(self, z):
+    z[z < 0] = 0
+    return z 
     
   def ce_loss(self, predictions, label):
     return -np.log(predictions)[label]
@@ -98,11 +116,13 @@ class NN(object):
     
   def train(self):
     n_train = self.X_train.shape[0]
-    for ep in range(1000):
+    for ep in range(10):
+      p = np.random.permutation(n_train)
+      X, y = self.X_train[p], self.y_train[p]
       total_loss = 0
       for i in range(n_train):
-        input = self.X_train[i].reshape(self.input_dim, 1)
-        label = self.y_train[i]
+        input = X[i].reshape(self.input_dim, 1)
+        label = y[i]
         self.forward(input, label)
         self.backward(input, label)
         self.update()
