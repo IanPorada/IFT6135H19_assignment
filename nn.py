@@ -7,6 +7,8 @@ class NN(object):
                datapath='data/mnist.pkl.npy', model_path=None,
                weight_init='glorot', activation_type='relu',
                step_size=0.02, batch_size=32):
+    np.random.seed(1)
+      
     self.mode = mode
     self.weight_init = weight_init
     self.step_size = step_size
@@ -92,14 +94,14 @@ class NN(object):
     return z 
     
   def ce_loss(self, a, y):
-    return np.sum(-np.log(np.dot(a.T, y))) / self.batch_size
+    return np.sum(-np.log(np.sum(a * y, axis=0))) / y.shape[1]
 
   def softmax(self, z):
     s = np.exp(z- np.amax(z, axis=0))
     return s / np.sum(s, axis=0)
   
   def inverse_softmax_ce_loss(self, a, y):
-    return (a - y) / self.batch_size
+    return (a - y) / y.shape[1]
     
   def backward(self):
     # loss with respect to outputs
@@ -153,6 +155,3 @@ class NN(object):
     gt = np.argmax(label, axis=0)
     n_correct = X.shape[0] - np.count_nonzero(est - gt)
     print(float(n_correct) / X.shape[0])
-  
-nn = NN()
-nn.train()
