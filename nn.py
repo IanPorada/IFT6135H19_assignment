@@ -131,27 +131,31 @@ class NN(object):
     X = self.X_train
     y = self.y_train
     n_train = X.shape[0]
+    losses = []
     for ep in range(10):
       start_time = time.time()
       p = np.random.permutation(n_train)
       X, y = X[p], y[p]
       total_loss = 0
-      for i in range(0, n_train - self.batch_size, self.batch_size):
+      n_batches = n_train / self.batch_size
+      for i in range(0, n_batches * self.batch_size, self.batch_size):
         input = X[i:i + self.batch_size].T.reshape(self.h0, self.batch_size)
         label = y[i:i + self.batch_size].T.reshape(self.h3, self.batch_size)
         self.forward(input, label)
         self.backward()
         self.update()
         total_loss += np.sum(self.L)
-      print(total_loss / n_train)
-      print("--- %s seconds ---" % (time.time() - start_time))
-      self.test(self.X_valid, self.y_valid)
+      print("Epoch %d (%s seconds)" % (ep + 1), (time.time() - start_time))
+      losses.append(total_loss / n_batches)
+      return losses
     
-  def test(self, X, y):
+  def test(self):
+    X = self.X_valid
+    y = self.y_valid
     input = X.T
     label = y.T
     self.forward(input, label)
     est = np.argmax(self.a3, axis=0)
     gt = np.argmax(label, axis=0)
     n_correct = X.shape[0] - np.count_nonzero(est - gt)
-    print(float(n_correct) / X.shape[0])
+    return float(n_correct) / X.shape[0]
