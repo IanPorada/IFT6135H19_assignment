@@ -147,6 +147,7 @@ class NN(object):
         total_loss += np.sum(self.L)
       print("Epoch %d (%s seconds)" % (ep + 1, time.time() - start_time))
       losses.append(total_loss / n_batches)
+      print("Loss %f" % losses[-1])
     return losses
     
   def test(self):
@@ -159,3 +160,4 @@ class NN(object):
     gt = np.argmax(label, axis=0)
     n_correct = X.shape[0] - np.count_nonzero(est - gt)
     return float(n_correct) / X.shape[0]
+
