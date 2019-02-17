@@ -161,3 +161,35 @@ class NN(object):
     n_correct = X.shape[0] - np.count_nonzero(est - gt)
     return float(n_correct) / X.shape[0]
 
+  def validate(self):
+    N_vals = [1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 50000]
+    fdgs = []
+    max_diffs = []
+    input = self.X_train[0].T.reshape(self.h0, 1)
+    label = self.y_train[0].T.reshape(self.h3, 1)
+    self.forward(input, label)
+    self.backward()
+    W2_old = self.W2
+    for N in N_vals:
+      epsilon = 1.0 / N
+      fdg = []
+      max_diff = 0.0
+      for i in range(10):
+        W2_new = np.copy(W2_old)
+        W2_new[0][i] += epsilon
+        self.W2 = W2_new
+        self.forward(input, label)
+        loss1 = self.L
+        self.W2[0][i] -= 2 * epsilon
+        self.forward(input, label)
+        loss2 = self.L
+        self.W2 = W2_old
+        fdg_i = (loss1 - loss2) * (N / 2)
+        diff = np.abs(fdg_i - self.dW2[0][i])
+        if diff > max_diff:
+          max_diff = diff
+        fdg.append(fdg_i)
+      fdgs.append(fdg)
+      max_diffs.append(max_diff)
+    return N_vals, fdgs, max_diffs
+
