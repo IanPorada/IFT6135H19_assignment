@@ -147,7 +147,7 @@ class NN(object):
         total_loss += np.sum(self.L)
       print("Epoch %d (%s seconds)" % (ep + 1, time.time() - start_time))
       losses.append(total_loss / n_batches)
-      return losses
+    return losses
     
   def test(self):
     X = self.X_valid
